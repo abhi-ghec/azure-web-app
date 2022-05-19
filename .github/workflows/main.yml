@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
 
 env:
   AZURE_WEBAPP_NAME: abhigithubapp
@@ -11,7 +14,7 @@ env:
   DOTNET_VERSION: '6.0.300'
 
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
     steps:
 
@@ -37,9 +40,15 @@ jobs:
           name: WebApp
           path: '${{ env.AZURE_WEBAPP_PATH }}/publish'
       
-      - name: Deploy to App Service
-        uses: azure/webapps-deploy@v2
-        with:
-          app-name: ${{ env.AZURE_WEBAPP_NAME }}
-          package: '${{ env.AZURE_WEBAPP_PATH }}/publish'
+  DeployDev:
+       name: Deploy to Dev
+       if: github.event_name == 'pull_request'
+       needs: [build]
+       runs-on: ubuntu-latest
+       steps:
+        - name: Deploy
+          uses: azure/webapps-deploy@v2
+          with:
+           app-name: ${{ env.AZURE_WEBAPP_NAME }}
+           package: '${{ env.AZURE_WEBAPP_PATH }}/publish'
       
