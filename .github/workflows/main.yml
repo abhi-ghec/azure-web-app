@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
 
 env:
   AZURE_WEBAPP_NAME: abhigithubapp
@@ -11,7 +14,7 @@ env:
   DOTNET_VERSION: '6.0.300'
 
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
     steps:
 
@@ -37,9 +40,73 @@ jobs:
           name: WebApp
           path: '${{ env.AZURE_WEBAPP_PATH }}/publish'
       
-      - name: Deploy to App Service
-        uses: azure/webapps-deploy@v2
-        with:
-          app-name: ${{ env.AZURE_WEBAPP_NAME }}
-          package: '${{ env.AZURE_WEBAPP_PATH }}/publish'
-      
+  DeployToDev:
+       name: Deploy to Dev
+       if: github.event_name == 'pull_request'
+       needs: [build]
+       runs-on: ubuntu-latest
+       environment:
+        name: Development
+       steps:
+
+        - name: Login via Azure CLI to Dev
+          uses: azure/login@v1
+          with:
+            creds: ${{ secrets.AZURE_CREDENTIALS }}
+        - name: Download Build Artifacts
+          uses: actions/download-artifact@v3
+          with:
+            name: WebApp
+            path: '${{ env.AZURE_WEBAPP_PATH }}/publish'
+        - name: Deploy
+          uses: azure/webapps-deploy@v2
+          with:
+           app-name: ${{ env.AZURE_WEBAPP_NAME }}
+           package: '${{ env.AZURE_WEBAPP_PATH }}/publish'
+  
+  DeployToStaging:
+       name: Deploy to Staging
+       if: github.event.ref == 'refs/heads/main'
+       needs: [build]
+       runs-on: ubuntu-latest
+       environment:
+        name: Staging
+       steps:
+
+        - name: Login via Azure CLI to Dev
+          uses: azure/login@v1
+          with:
+            creds: ${{ secrets.AZURE_CREDENTIALS }}
+        - name: Download Build Artifacts
+          uses: actions/download-artifact@v3
+          with:
+            name: WebApp
+            path: '${{ env.AZURE_WEBAPP_PATH }}/publish'
+        - name: Deploy
+          uses: azure/webapps-deploy@v2
+          with:
+           app-name: ${{ env.AZURE_WEBAPP_NAME }}
+           package: '${{ env.AZURE_WEBAPP_PATH }}/publish'
+  
+  DeployToProd:
+       name: Deploy to Production
+       needs: [DeployToStaging]
+       runs-on: ubuntu-latest
+       environment:
+        name: Production
+       steps:
+
+        - name: Login via Azure CLI to Dev
+          uses: azure/login@v1
+          with:
+            creds: ${{ secrets.AZURE_CREDENTIALS }}
+        - name: Download Build Artifacts
+          uses: actions/download-artifact@v3
+          with:
+            name: WebApp
+            path: '${{ env.AZURE_WEBAPP_PATH }}/publish'
+        - name: Deploy
+          uses: azure/webapps-deploy@v2
+          with:
+           app-name: ${{ env.AZURE_WEBAPP_NAME }}
+           package: '${{ env.AZURE_WEBAPP_PATH }}/publish'
