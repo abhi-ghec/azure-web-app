@@ -8,7 +8,7 @@ on:
 env:
   AZURE_WEBAPP_NAME: abhigithubapp
   AZURE_WEBAPP_PATH: '.'
-  DOTNET_VERSION: '3.1.302'
+  DOTNET_VERSION: '6.0.300'
 
 jobs:
   build-and-deploy:
