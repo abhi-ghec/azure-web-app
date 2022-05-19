@@ -45,6 +45,32 @@ jobs:
        if: github.event_name == 'pull_request'
        needs: [build]
        runs-on: ubuntu-latest
+       environment:
+        name: Development
+       steps:
+
+        - name: Login via Azure CLI to Dev
+          uses: azure/login@v1
+          with:
+            creds: ${{ secrets.AZURE_CREDENTIALS }}
+        - name: Download Build Artifacts
+          uses: actions/download-artifact@v3
+          with:
+            name: WebApp
+            path: '${{ env.AZURE_WEBAPP_PATH }}/publish'
+        - name: Deploy
+          uses: azure/webapps-deploy@v2
+          with:
+           app-name: ${{ env.AZURE_WEBAPP_NAME }}
+           package: '${{ env.AZURE_WEBAPP_PATH }}/publish'
+  
+  DeployProd:
+       name: Deploy to Production
+       #if: github.event_name == 'pull_request'
+       needs: [DeployDev]
+       runs-on: ubuntu-latest
+       environment:
+        name: Production
        steps:
 
         - name: Login via Azure CLI to Dev
