@@ -47,10 +47,10 @@ jobs:
        runs-on: ubuntu-latest
        steps:
 
-        - name: Login via Azure CLI
+        - name: Login via Azure CLI to Dev
           uses: azure/login@v1
           with:
-            dotnet-version: ${{ env.DOTNET_VERSION }}
+            dotnet-version: ${{ secrets.AZURE_CREDENTIALS }}
         - name: Deploy
           uses: azure/webapps-deploy@v2
           with:
