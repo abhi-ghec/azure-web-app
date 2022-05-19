@@ -46,6 +46,11 @@ jobs:
        needs: [build]
        runs-on: ubuntu-latest
        steps:
+
+        - name: Login via Azure CLI
+          uses: azure/login@v1
+          with:
+            dotnet-version: ${{ env.DOTNET_VERSION }}
         - name: Deploy
           uses: azure/webapps-deploy@v2
           with:
