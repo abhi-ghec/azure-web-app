@@ -40,7 +40,7 @@ jobs:
           name: WebApp
           path: '${{ env.AZURE_WEBAPP_PATH }}/publish'
       
-  DeployDev:
+  DeployToDev:
        name: Deploy to Dev
        if: github.event_name == 'pull_request'
        needs: [build]
@@ -64,10 +64,33 @@ jobs:
            app-name: ${{ env.AZURE_WEBAPP_NAME }}
            package: '${{ env.AZURE_WEBAPP_PATH }}/publish'
   
-  DeployProd:
+  DeployToStaging:
+       name: Deploy to Staging
+       if: github.event.ref == 'refs/heads/main'
+       needs: [build]
+       runs-on: ubuntu-latest
+       environment:
+        name: Staging
+       steps:
+
+        - name: Login via Azure CLI to Dev
+          uses: azure/login@v1
+          with:
+            creds: ${{ secrets.AZURE_CREDENTIALS }}
+        - name: Download Build Artifacts
+          uses: actions/download-artifact@v3
+          with:
+            name: WebApp
+            path: '${{ env.AZURE_WEBAPP_PATH }}/publish'
+        - name: Deploy
+          uses: azure/webapps-deploy@v2
+          with:
+           app-name: ${{ env.AZURE_WEBAPP_NAME }}
+           package: '${{ env.AZURE_WEBAPP_PATH }}/publish'
+  
+  DeployToProd:
        name: Deploy to Production
-       #if: github.event_name == 'pull_request'
-       needs: [DeployDev]
+       needs: [DeployToStaging]
        runs-on: ubuntu-latest
        environment:
         name: Production
