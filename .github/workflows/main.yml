@@ -131,12 +131,18 @@ jobs:
           with:
             name: WebApp.${{github.sha}}.${{ github.run_number }}
             path: '${{ env.AZURE_WEBAPP_PATH }}/publish'
+        
+        - name: Zip bundle
+          run: |
+            cd '${{ env.AZURE_WEBAPP_PATH }}/publish'
+            zip -r ../WebApp.${{github.sha}}.${{ github.run_number }}.zip .
+        
         - name: Upload release asset
           uses: actions/upload-release-asset@v1
           env:
             GITHUB_TOKEN: ${{ secrets.github_token }}
           with:
             upload_url: ${{ steps.create_release.outputs.upload_url }}
-            asset_path: '${{ env.AZURE_WEBAPP_PATH }}/publish'
-            asset_name: WebApp.${{github.sha}}.${{ github.run_number }}
+            asset_path: WebApp.${{github.sha}}.${{ github.run_number }}.zip
+            asset_name: WebAppArtifacts.zip
             asset_content_type: application/zip
