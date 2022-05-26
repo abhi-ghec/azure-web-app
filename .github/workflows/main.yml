@@ -138,5 +138,5 @@ jobs:
           with:
             upload_url: ${{ steps.create_release.outputs.upload_url }}
             asset_path: '${{ env.AZURE_WEBAPP_PATH }}/publish'
-            asset_name: sWebApp.${{github.sha}}.${{ github.run_number }}
+            asset_name: WebApp.${{github.sha}}.${{ github.run_number }}
             asset_content_type: application/zip
